@@ -78,15 +78,15 @@ def check_label(label):
 	if sep:
 		if func.strip() != 'FUNC' \
 			or not is_valid_identifier(funcName) \
-			or func_table.has_key(funcName):
+			or funcName in func_table:
 			return False
 		else:
 			func_table[funcName] = len(code)
 			return True
 	else:
 		if not is_valid_identifier(label) \
-			or func_table.has_key(label) \
-			or label_table.has_key(label):
+			or label in func_table \
+			or label in label_table:
 			return False
 		else:
 			label_table[label] = len(code)
@@ -288,7 +288,7 @@ def call(funcName):
 	new_var_table = {}
 	for addr, arg  in enumerate(arg_list, len(stack)-len(arg_list)):		
 		arg = arg.strip()
-		if not is_valid_identifier(arg) or new_var_table.has_key(arg):
+		if not is_valid_identifier(arg) or arg in new_var_table:
 			run_error("Wrong arg name")
 
 		new_var_table[arg] = addr

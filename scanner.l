@@ -9,24 +9,36 @@ void unrecognized_char(char c);
 
 /* \042 is " */
 
-OPERATOR        ([-/+*()=,;])
+WHITESPACE      ([ \t\r\a]+)
+SINGLE_COMMENT1 ("//"[^\n]*)
+SINGLE_COMMENT2 ("#"[^\n]*)
+OPERATOR        ([+*-/%=,;!<>(){}])
 INTEGER         ([0-9]+)
-STRING          (\042[^042\n]*\042)
 IDENTIFIER      ([_a-zA-Z][_a-zA-Z0-9]*)
-WHITESPACE      ([ \t]*)
+UNTERM_STRING   (\042[^\042\n]*)
+STRING          (\042[^042\n]*\042)
+
 
 %%
 
+\n                  {cur_line++;}
+{WHITESPACE}        {/*ignore*/}
+{SINGLE_COMMENT1}   {/*skip*/}
+{SINGLE_COMMENT2}   {/*skip*/}
+
+
 {OPERATOR}      {return yytext[0];}
 "int"           {return T_Int;}
+"void"          {return T_Void;}
+"return"        {return T_Return;}
 "print"         {return T_Print;}
 
 {INTEGER}       {_DUPTEXT; return T_IntConstant;}
 {STRING}        {_DUPTEXT; return T_StringConstant;}
 {IDENTIFIER}    {_DUPTEXT; return T_Identifier;}
 
-{WHITESPACE}    {/*ignore*/}
-\n              {cur_line++;}
+{UNTERM_STRING} {unterminated_string();}
+
 .               {unrecognized_char(yytext[0]);}
 
 %%
@@ -40,6 +52,10 @@ void unrecognized_char(char c){
     char buf[32] = "Unrecognized character: ?";
     buf[24] = c;
     yyerror(buf);
+}
+
+void unterminated_string(){
+    yyerror("unterminated string");
 }
 
 void yyerror(const char* msg){
